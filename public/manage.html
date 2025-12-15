@@ -2,170 +2,124 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Manage Patients</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manage Patients | ESP32 Dashboard</title>
+
 <style>
-body { font-family:Segoe UI; background:#0a0f1a; color:#fff; margin:0; padding:0;}
-.container { width:95%; margin:20px auto; }
+body {
+  background:#0a0f1a;
+  color:#fff;
+  font-family:Segoe UI;
+}
 h2 { text-align:center; color:#00ffff; }
-table { width:100%; border-collapse:collapse; margin-top:20px; }
-th, td { border:1px solid #00ffff; padding:10px; text-align:center; }
-th { background:#004d40; }
-input, button { padding:8px; margin:5px; border-radius:6px; border:none; }
-button { background:#00ffff; color:#000; cursor:pointer; font-weight:bold; }
-button:hover { background:#00bcd4; color:#fff; }
-input[type="text"], input[type="number"] { width:100%; }
-.actions { display:flex; gap:5px; justify-content:center; }
-.search-box { margin-top:15px; text-align:right; }
-.search-box input { width:200px; }
+table {
+  width:95%;
+  margin:auto;
+  border-collapse:collapse;
+}
+th,td {
+  border:1px solid #00ffff44;
+  padding:8px;
+  text-align:center;
+}
+th { background:#001f2f; }
+input,button {
+  padding:8px;
+  border-radius:6px;
+  border:none;
+}
+button {
+  background:#00ffff;
+  cursor:pointer;
+  font-weight:bold;
+}
+.form {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
+  width:95%;
+  margin:15px auto;
+}
 </style>
 </head>
+
 <body>
-<div class="container">
-  <h2>Manage Patients</h2>
-
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search by device or name" oninput="renderTable()">
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Device ID</th>
-        <th>Name</th>
-        <th>Mobile</th>
-        <th>SpO₂</th>
-        <th>Heart Rate</th>
-        <th>Time</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-
-  <h3>Add / Edit Patient</h3>
-  <div>
-    <input type="text" id="device_id" placeholder="Device ID">
-    <input type="text" id="Pname" placeholder="Patient Name">
-    <input type="text" id="Pmobile" placeholder="Mobile">
-    <input type="number" id="spo2" placeholder="SpO₂">
-    <input type="number" id="heartrate" placeholder="Heart Rate">
-    <button onclick="savePatient()">Save</button>
-    <button onclick="clearForm()">Clear</button>
-  </div>
-</div>
 
 <script>
-let patients = [];
-let editDeviceId = null;
+if(localStorage.getItem('auth')!=='1') location.href='/login.html';
+</script>
 
-// Fetch data from API
-async function fetchPatients() {
-  try {
-    const res = await fetch('/api/patients'); // GET all patients
-    const data = await res.json();
-    patients = data;
-    renderTable();
-  } catch(err) {
-    console.error('Fetch patients error:', err);
-  }
-}
+<h2>🧾 Patient Management</h2>
 
-// Render table
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  tbody.innerHTML = '';
+<div class="form">
+  <input id="device_id" placeholder="Device ID">
+  <input id="pname" placeholder="Patient Name">
+  <input id="pmobile" placeholder="Mobile">
+  <input id="spo2" placeholder="SpO₂">
+  <input id="heartrate" placeholder="Heart Rate">
+  <button onclick="add()">Add</button>
+</div>
 
-  patients.filter(p => 
-    p.device_id.toLowerCase().includes(search) || 
-    p.Pname.toLowerCase().includes(search)
-  ).forEach(p => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${p.id}</td>
-      <td>${p.device_id}</td>
-      <td>${p.Pname}</td>
-      <td>${p.Pmobile}</td>
-      <td>${p.spo2}</td>
-      <td>${p.heartrate}</td>
-      <td>${new Date(p.time).toLocaleString()}</td>
-      <td class="actions">
-        <button onclick="editPatient('${p.device_id}')">Edit</button>
-        <button onclick="deletePatient('${p.device_id}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Device</th><th>Name</th><th>Mobile</th>
+<th>SpO₂</th><th>HR</th><th>Time</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+
+<script>
+async function load(){
+  const res=await fetch('/api/get');
+  const data=await res.json();
+  const tbody=document.getElementById('rows');
+  tbody.innerHTML='';
+  data.forEach(r=>{
+    tbody.innerHTML+=`
+<tr>
+<td>${r.id}</td>
+<td>${r.device_id}</td>
+<td>${r.pname}</td>
+<td>${r.pmobile}</td>
+<td>${r.spo2}</td>
+<td>${r.heartrate}</td>
+<td>${new Date(r.time).toLocaleString()}</td>
+<td>
+<button onclick="del(${r.id})">🗑</button>
+</td>
+</tr>`;
   });
 }
 
-// Clear form
-function clearForm() {
-  editDeviceId = null;
-  document.getElementById('device_id').value = '';
-  document.getElementById('Pname').value = '';
-  document.getElementById('Pmobile').value = '';
-  document.getElementById('spo2').value = '';
-  document.getElementById('heartrate').value = '';
+async function add(){
+  await fetch('/api/add',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      device_id:device_id.value,
+      pname:pname.value,
+      pmobile:pmobile.value,
+      spo2:+spo2.value,
+      heartrate:+heartrate.value
+    })
+  });
+  load();
 }
 
-// Edit patient
-function editPatient(device_id) {
-  const p = patients.find(p => p.device_id === device_id);
-  if (!p) return;
-  editDeviceId = device_id;
-  document.getElementById('device_id').value = p.device_id;
-  document.getElementById('Pname').value = p.Pname;
-  document.getElementById('Pmobile').value = p.Pmobile;
-  document.getElementById('spo2').value = p.spo2;
-  document.getElementById('heartrate').value = p.heartrate;
+async function del(id){
+  await fetch('/api/delete',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id})
+  });
+  load();
 }
 
-// Save patient (Add or Update)
-async function savePatient() {
-  const device_id = document.getElementById('device_id').value;
-  const Pname = document.getElementById('Pname').value;
-  const Pmobile = document.getElementById('Pmobile').value;
-  const spo2 = Number(document.getElementById('spo2').value);
-  const heartrate = Number(document.getElementById('heartrate').value);
-
-  if(!device_id || !Pname) return alert('Device ID and Name required');
-
-  try {
-    const method = editDeviceId ? 'PUT' : 'POST';
-    const url = '/api/patients';
-    const body = JSON.stringify({ device_id, Pname, Pmobile, spo2, heartrate });
-
-    const res = await fetch(url, { method, headers: { 'Content-Type':'application/json' }, body });
-    if(!res.ok) throw new Error('Request failed');
-
-    editDeviceId = null;
-    clearForm();
-    fetchPatients();
-  } catch(err) {
-    console.error('Save patient error:', err);
-  }
-}
-
-// Delete patient
-async function deletePatient(device_id) {
-  if(!confirm('Delete this patient?')) return;
-  try {
-    const res = await fetch('/api/patients', {
-      method:'DELETE',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ device_id })
-    });
-    if(!res.ok) throw new Error('Delete failed');
-    fetchPatients();
-  } catch(err) {
-    console.error('Delete patient error:', err);
-  }
-}
-
-// Initial fetch
-fetchPatients();
+load();
 </script>
+
 </body>
 </html>
+
