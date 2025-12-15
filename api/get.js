@@ -4,7 +4,7 @@ const sql = neon(process.env.DATABASE_URL);
 export default async function handler(req, res) {
   try {
     const rows = await sql`
-      SELECT device_id,pname,pmobile,spo2,heartrate,time
+      SELECT id,device_id,pname,pmobile,spo2,heartrate,time
       FROM sensor_data
       ORDER BY time DESC
     `;
