@@ -1,22 +1,44 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless';
+
 const sql = neon(process.env.DATABASE_URL);
 
 export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
-  if (req.method === "POST") {
-    const {device_id , heartrate, spo2 } = req.body;
+  try {
+    const body = typeof req.body === 'string'
+      ? JSON.parse(req.body)
+      : req.body;
+
+    const { heartrate, spo2, device_id, pname, pmobile } = body || {};
+
+    if (
+      heartrate === undefined ||
+      spo2 === undefined ||
+      !device_id
+    ) {
+      return res.status(400).json({
+        message: 'Missing sensor data',
+        received: body
+      });
+    }
+
     await sql`
-      INSERT INTO sensor_data (device_id ,heartrate, spo2)
-      VALUES (${device_id},${heartrate}, ${spo2})
+      INSERT INTO sensor_data
+      (device_id, pname, pmobile, heartrate, spo2)
+      VALUES
+      (${device_id}, ${pname || ''}, ${pmobile || ''}, ${heartrate}, ${spo2})
     `;
-    return res.json({ ok:true });
-  }
 
-  if (req.method === "DELETE") {
-    const { id } = req.query;
-    await sql`DELETE FROM sensor_data WHERE id=${id}`;
-    return res.json({ ok:true });
-  }
+    return res.status(200).json({ success: true });
 
-  res.status(405).json({ message:"Method not allowed" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: 'Database insert failed',
+      detail: err.message
+    });
+  }
 }
