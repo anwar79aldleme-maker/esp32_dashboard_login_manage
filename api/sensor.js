@@ -4,10 +4,10 @@ const sql = neon(process.env.DATABASE_URL);
 export default async function handler(req, res) {
 
   if (req.method === "POST") {
-    const { heartrate, spo2 } = req.body;
+    const {device_id , heartrate, spo2 } = req.body;
     await sql`
-      INSERT INTO sensor_data (heartrate, spo2)
-      VALUES (${heartrate}, ${spo2})
+      INSERT INTO sensor_data (device_id ,heartrate, spo2)
+      VALUES (${device_id},${heartrate}, ${spo2})
     `;
     return res.json({ ok:true });
   }
