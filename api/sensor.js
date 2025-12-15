@@ -13,8 +13,8 @@ export default async function handler(req, res) {
       ? JSON.parse(req.body)
       : req.body;
 
-    const { heartrate, spo2, device_id, pname, pmobile } = body || {};
-
+   // const {  device_id,heartrate, spo2, pname, pmobile } = body || {};
+const {  device_id, heartrate, spo2 } = body || {};
     if (
       heartrate === undefined ||
       spo2 === undefined ||
@@ -28,10 +28,13 @@ export default async function handler(req, res) {
 
     await sql`
       INSERT INTO sensor_data
-      (device_id, pname, pmobile, heartrate, spo2)
+      (device_id, heartrate, spo2)
       VALUES
-      (${device_id}, ${pname || ''}, ${pmobile || ''}, ${heartrate}, ${spo2})
-    `;
+      (${device_id}  , ${heartrate}, ${spo2})
+       `;
+      //(device_id, pname, pmobile, heartrate, spo2)
+     // (${device_id}, ${pname || ''}, ${pmobile || ''}, ${heartrate}, ${spo2})
+   
 
     return res.status(200).json({ success: true });
 
