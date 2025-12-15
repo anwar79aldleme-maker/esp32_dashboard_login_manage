@@ -7,7 +7,6 @@ export default async function handler(req, res) {
       SELECT device_id,pname,pmobile,spo2,heartrate,time
       FROM sensor_data
       ORDER BY time DESC
-      LIMIT 50
     `;
     res.json(rows.reverse());
   } catch (e) {
