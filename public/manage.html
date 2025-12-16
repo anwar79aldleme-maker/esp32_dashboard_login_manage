@@ -56,8 +56,8 @@ if(localStorage.getItem('auth')!=='1') location.href='/login.html';
   <input id="device_id" placeholder="Device ID">
   <input id="pname" placeholder="Patient Name">
   <input id="pmobile" placeholder="Mobile">
-  <input id="spo2" placeholder="SpO₂">
-  <input id="heartrate" placeholder="Heart Rate">
+  <input id="email" placeholder="Email">
+  <input id="age" placeholder="Age">
   <button onclick="addPatient()">Add</button>
 </div>
 
@@ -102,10 +102,10 @@ async function loadPatients(){
 async function addPatient(){
   const body = {
     device_id: document.getElementById('device_id').value,
-    pname: document.getElementById('pname').value,
-    pmobile: document.getElementById('pmobile').value,
-    spo2: Number(document.getElementById('spo2').value),
-    heartrate: Number(document.getElementById('heartrate').value)
+    pname: document.getElementById('p_name').value,
+    pmobile: document.getElementById('ph_no').value,
+    email:document.getElementById('email').value),
+    age: Number(document.getElementById('age').value)
   };
 
   if(!body.device_id || !body.pname) {
