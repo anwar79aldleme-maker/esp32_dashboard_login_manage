@@ -59,6 +59,7 @@ if(localStorage.getItem('auth')!=='1') location.href='/login.html';
   <input id="email" placeholder="Email">
   <input id="age" placeholder="Age">
   <button onclick="addPatient()">Add</button>
+  <button onclick="editPatient()"> Edit </button>
 </div>
 
 <table>
@@ -95,6 +96,32 @@ async function loadPatients(){
     });
   } catch(err){
     console.error('Load patients error:', err);
+  }
+}
+async function editPatient(){
+  const body = {
+    device_id: document.getElementById('device_id').value,
+    pname: document.getElementById('pname').value,
+    pmobile: document.getElementById('pmobile').value,
+    email:document.getElementById('email').value,
+age: Number(document.getElementById('age').value)
+  };
+
+  if(!body.device_id || !body.pname) {
+    alert('Device ID and Patient Name are required!');
+    return;
+  }
+
+  try {
+    await fetch('/api/update', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    clearForm();
+    loadPatients();
+  } catch(err){
+    console.error('Add patient error:', err);
   }
 }
 
