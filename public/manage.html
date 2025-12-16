@@ -84,8 +84,6 @@ async function loadPatients(){
 <tr>
 <td>${r.id}</td>
 <td>${r.device_id}</td>
-<td>${r.pname}</td>
-<td>${r.pmobile}</td>
 <td>${r.spo2}</td>
 <td>${r.heartrate}</td>
 <td>${new Date(r.time).toLocaleString()}</td>
@@ -144,8 +142,8 @@ function clearForm(){
   document.getElementById('device_id').value = '';
   document.getElementById('pname').value = '';
   document.getElementById('pmobile').value = '';
-  document.getElementById('spo2').value = '';
-  document.getElementById('heartrate').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('age').value = '';
 }
 
 loadPatients();
